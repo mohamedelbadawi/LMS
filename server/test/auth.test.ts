@@ -77,7 +77,7 @@ describe("Authentication Controller", () => {
         .expect((res) => {
           expect(res.status).to.equal(200);
           expect(res.type).to.equal("application/json");
-          expect(res.body.message).to.equal("Success");
+          expect(res.body.success).to.equal(true);
           expect(res.headers).to.have.property("set-cookie");
         });
       done();
@@ -141,7 +141,7 @@ describe("Refresh Endpoint", () => {
     expect((res) => {
       expect(res.status).to.equal(200);
       expect(res.type).to.equal("application/json");
-      expect(res.body.message).to.equal("Success");
+      expect(res.body.success).to.equal(true);
     });
   });
 
@@ -154,5 +154,17 @@ describe("Refresh Endpoint", () => {
       expect(res.type).to.equal("application/json");
       expect(res.body.message).to.equal("UnAuth user");
     });
+  });
+});
+
+describe("logout endpoint", () => {
+  it("should log out and delete the tokens from the cookeis", (done) => {
+    request(app)
+      .post("/api/v1/logout")
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.success).to.equal(true);
+      });
+    done();
   });
 });

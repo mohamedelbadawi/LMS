@@ -8,4 +8,5 @@ authRouter.post("/activate-user", AuthController.activeUser);
 authRouter.post("/login", userLoginValidator, AuthController.login);
 authRouter.post("/auth-user", AuthController.authUser);
 authRouter.post("/refresh", AuthController.refresh);
+authRouter.post("/logout", AuthController.logout);
 export default authRouter;

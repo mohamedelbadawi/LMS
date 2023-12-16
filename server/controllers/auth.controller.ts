@@ -106,55 +106,68 @@ class AuthController {
           httpOnly: true,
           maxAge: 7 * 24 * 60 * 60 * 1000,
         });
-        
-        res.status(200).json({ message: "Success" });
+
+        res.status(200).json({ success: true });
       }
 
       return next(new ErrorHandler("Invalid Credentials", 400));
     }
   );
 
-  public static async authUser(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const accessToken = req.cookies["accessToken"];
-      const payload: any = jwt.verify(
-        accessToken,
-        process.env.ACCESS_TOKEN as string
-      );
-      if (!payload) {
-        return next(new ErrorHandler("UnAuth user", 400));
-      }
-      const user: IUser[] = await authServices.getOneById(payload.id);
+  public static authUser = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const accessToken = req.cookies["accessToken"];
+        const payload: any = jwt.verify(
+          accessToken,
+          process.env.ACCESS_TOKEN as string
+        );
+        if (!payload) {
+          return next(new ErrorHandler("UnAuth user", 400));
+        }
+        const user: IUser[] = await authServices.getOneById(payload.id);
 
-      return res.status(200).json({ user: user, success: true });
-    } catch (error: any) {
-      return next(new ErrorHandler(error.message, 400));
-    }
-  }
-
-  public static async refresh(req: Request, res: Response, next: NextFunction) {
-    try {
-      const refreshToken = req.cookies["refreshToken"];
-      const payload: any = jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN as string
-      );
-      if (!payload) {
-        return res.status(400).json({ message: "UnAuth user" });
+        return res.status(200).json({ user: user, success: true });
+      } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
       }
-      const accessToken = await authServices.generateAccessToken(payload.id);
-      res.cookie("accessToken", accessToken, {
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-      });
-      return res.status(200).json({ message: "Success" });
-    } catch (error: any) {
-      return next(new ErrorHandler(error.msg, 400));
     }
-  }
+  );
+
+  public static refresh = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const refreshToken = req.cookies["refreshToken"];
+        const payload: any = jwt.verify(
+          refreshToken,
+          process.env.REFRESH_TOKEN as string
+        );
+        if (!payload) {
+          return res.status(400).json({ message: "UnAuth user" });
+        }
+        const accessToken = await authServices.generateAccessToken(payload.id);
+        res.cookie("accessToken", accessToken, {
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 1000,
+        });
+        return res.status(200).json({ success: true });
+      } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+      }
+    }
+  );
+  public static logout = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        res.cookie("accessToken", "", { maxAge: 0 });
+        res.cookie("refreshToken", "", { maxAge: 0 });
+        return res.status(200).json({
+          success: "true",
+        });
+      } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+      }
+    }
+  );
 }
 export default AuthController;
