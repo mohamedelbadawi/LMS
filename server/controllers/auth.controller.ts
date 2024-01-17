@@ -59,10 +59,12 @@ class AuthController {
       try {
         const { activationCode, activationToken } =
           req.body as IActivationRequest;
+
         const newUser: { user: IUser; activationCode: String } = jwt.verify(
           activationToken,
           process.env.ACTIVATION_SECRET as string
         ) as { user: IUser; activationCode: string };
+
         if (newUser.activationCode !== activationCode) {
           return next(new ErrorHandler("Invalid Activation Code", 400));
         }
@@ -117,16 +119,7 @@ class AuthController {
   public static authUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
-        const accessToken = req.cookies["accessToken"];
-        const payload: any = jwt.verify(
-          accessToken,
-          process.env.ACCESS_TOKEN as string
-        );
-        if (!payload) {
-          return next(new ErrorHandler("UnAuth user", 400));
-        }
-        const user: IUser[] = await authServices.getOneById(payload.id);
-
+        const user = req.user;
         return res.status(200).json({ user: user, success: true });
       } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
@@ -159,8 +152,7 @@ class AuthController {
   public static logout = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
-        res.cookie("accessToken", "", { maxAge: 0 });
-        res.cookie("refreshToken", "", { maxAge: 0 });
+        authServices.deleteTokens(res);
         return res.status(200).json({
           success: "true",
         });

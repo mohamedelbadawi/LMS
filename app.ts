@@ -4,13 +4,14 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./server/routes/auth.route";
+import userRouter from "./server/routes/user.route";
 import ErrorHandlerMiddleware from "./server/middleware/error";
-import connection from "./server/utils/db";
+
 export const app = express();
 
 config();
 app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 
 app.use(cookieParser());
 
@@ -21,6 +22,7 @@ app.use(
 );
 // routes
 app.use("/api/v1/", authRouter);
+app.use("/api/v1/user/", userRouter);
 
 // testing
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {

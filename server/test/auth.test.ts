@@ -2,6 +2,7 @@ import request from "supertest";
 import { app } from "../../app";
 import connection from "../utils/db";
 import { expect } from "chai";
+import { describe } from "mocha";
 const chai = require("chai");
 
 before(async () => {
@@ -104,7 +105,7 @@ describe("Auth User Endpoint", () => {
   it("should return user information with a valid access token", async () => {
     // You'll need to obtain a valid access token to use in the request
     const validAccessToken =
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1N2M2Mzc4ZjRiMzU1ODg2YzA0ZjUyYiIsImlhdCI6MTcwMjY1ODY3NywiZXhwIjoxNzAyNjU4NzA3fQ.ScOFjK3LeanwjcPFz3qp7d3GkFIKf3os1ksxyQ4VNOY";
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1N2RiZTdmZDhiNDRkOGUxZDliYTljYSIsImlhdCI6MTcwMjc0MDg3MiwiZXhwIjoxNzAyNzQxMTcyfQ.M5wzgguvWweHWnxZ7zxsA06N1UmWbRazu39_kwULKwA";
 
     request(app)
       .get("/api/v1/auth-user")
@@ -168,3 +169,4 @@ describe("logout endpoint", () => {
     done();
   });
 });
+
