@@ -3,14 +3,12 @@ import { asyncHandler } from "../middleware/asyncErrorHandler";
 import { userServices } from "../services/user.services";
 import ErrorHandler from "../utils/ErrorHandler";
 import { authServices } from "../services/auth.services";
-import { Buffer } from "buffer";
 const cloudinary = require("cloudinary");
-import DatauriParser from "datauri/parser";
-import path from "path";
+
 import {
-  generateUniqueFilename,
   uploadToCloudinary,
   updateUserAvatar,
+  prepareFileToUpload,
 } from "../utils/dataUpload";
 class UserController {
   public static updateInfo = asyncHandler(
@@ -68,21 +66,18 @@ class UserController {
   public static updateAvatar = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
-        const parser = new DatauriParser();
-        const extName = path
-          .extname(req.file?.originalname || "")
-          .substring(0, 10);
-        const avatar = parser.format(extName, req.file?.buffer || "") as {
-          content: string;
-        };
+        const { file, public_id } = await prepareFileToUpload(
+          req.file?.originalname || "",
+          req.file?.buffer
+        );
+
         const user = await userServices.getUserDataByEmail(req.user.email);
         if (user[0].avatar.publicId) {
           await cloudinary.uploader.destroy(user[0].avatar.publicId);
         }
 
-        const uniqueFilename = generateUniqueFilename();
-        const uploaded = await uploadToCloudinary(avatar.content, {
-          public_id: uniqueFilename,
+        const uploaded = await uploadToCloudinary(file.content, {
+          public_id: public_id,
           folder: "avatars",
           width: 150,
         });
@@ -91,13 +86,15 @@ class UserController {
           publicId: string;
           url: string;
         } = {
-          publicId: uploaded.public_Id,
+          publicId: uploaded.public_id,
           url: uploaded.url,
         };
 
         await updateUserAvatar(user[0]._id, avatarData);
 
-        return res.status(200).json({ success: true,message:"Avatar updated successfully" });
+        return res
+          .status(200)
+          .json({ success: true, message: "Avatar updated successfully" });
       } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
       }

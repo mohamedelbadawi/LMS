@@ -44,7 +44,7 @@ class AuthServices {
     const accessToken = await jwt.sign(
       { id: user.id },
       process.env.ACCESS_TOKEN as string,
-      { expiresIn: "30s" }
+      { expiresIn: "30000s" }
     );
 
     const refreshToken = await jwt.sign(
@@ -59,7 +59,7 @@ class AuthServices {
     const accessToken = await jwt.sign(
       { id: id },
       process.env.ACCESS_TOKEN as string,
-      { expiresIn: "5m" }
+      { expiresIn: "15m" }
     );
     return accessToken;
   }
