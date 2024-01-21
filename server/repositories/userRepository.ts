@@ -45,5 +45,18 @@ class UserRepository {
   ) {
     return await this.userModel.findOneAndUpdate({ _id: id }, userData).exec();
   }
+
+  async find(
+    query: object,
+    projection?: object,
+    population?: any
+  ): Promise<IUser | null> {
+    if (population) {
+      return await this.userModel
+        .findOne(query, projection)
+        .populate(population);
+    }
+    return await this.userModel.findOne(query, projection);
+  }
 }
 export const userRepository = new UserRepository();

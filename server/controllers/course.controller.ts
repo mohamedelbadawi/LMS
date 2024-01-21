@@ -4,10 +4,18 @@ import { asyncHandler } from "../middleware/asyncErrorHandler";
 import { uploadFile } from "../utils/dataUpload";
 import { courseServices } from "../services/course.services";
 import ErrorHandler from "../utils/ErrorHandler";
-import { ILesson, ISection } from "../models/course.model";
+import {
+  IComment,
+  ILesson,
+  IRate,
+  IReply,
+  ISection,
+} from "../models/course.model";
+import { userServices } from "../services/user.services";
 const cloudinary = require("cloudinary");
-
 class CourseController {
+  //@collapse
+
   public static createCourse = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
@@ -203,6 +211,149 @@ class CourseController {
 
         const result = await courseServices.getCourses(search);
         return res.json(result);
+      } catch (error: any) {
+        console.error(error);
+        return next(new ErrorHandler(error.message, 400));
+      }
+    }
+  );
+
+  public static accessCourse = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { courseId } = req.params;
+        // check if the user purchase this course
+        if (
+          !(await courseServices.checkCourseInUserCourses(
+            courseId,
+            req.user.id
+          ))
+        ) {
+          return next(
+            new ErrorHandler("You must enroll to this course to comment", 400)
+          );
+        }
+        const course = await courseServices.getCourse(courseId);
+        return res.status(200).json({ success: true, data: course });
+      } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+      }
+    }
+  );
+
+  public static viewCourse = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { courseId } = req.params;
+        const course = await courseServices.viewCourse(courseId);
+        return res.status(200).json({ success: true, data: course });
+      } catch (error: any) {
+        return next(new ErrorHandler(error.message, 400));
+      }
+    }
+  );
+  public static writeComment = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { courseId, sectionId, lessonId } = req.params;
+        const { comment } = req.body;
+        if (
+          !(await courseServices.checkCourseInUserCourses(
+            courseId,
+            req.user.id
+          ))
+        ) {
+          return next(
+            new ErrorHandler("You must enroll to this course to comment", 400)
+          );
+        }
+        const commentData = {
+          user: req.user._id,
+          comment: comment,
+        } as IComment;
+        await courseServices.addCommentToLesson(commentData, lessonId);
+        return res.json({ success: true, message: "Comment add Successfully" });
+      } catch (error: any) {
+        console.error(error.message);
+        return next(new ErrorHandler(error.message, 400));
+      }
+    }
+  );
+  public static writeReply = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        // comment Id
+        const { commentId, courseId } = req.params;
+        const { reply } = req.body;
+        const isPurchased = await courseServices.checkCourseInUserCourses(
+          courseId,
+          req.user.id
+        );
+        if (!isPurchased) {
+          return next(new ErrorHandler("you can't reply to this comment", 400));
+        }
+        const replyData = {
+          user: req.user.id,
+          reply: reply,
+        } as IReply;
+        await courseServices.addReplyToComment(commentId, replyData);
+        return res
+          .status(200)
+          .json({ success: true, message: "reply sent successfully" });
+      } catch (error: any) {
+        console.error(error);
+        return next(new ErrorHandler(error.message, 400));
+      }
+    }
+  );
+
+  public static viewComment = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { commentId, courseId } = req.params;
+        const isPurchased = await courseServices.checkCourseInUserCourses(
+          courseId,
+          req.user.id
+        );
+        if (!isPurchased) {
+          return next(
+            new ErrorHandler(
+              "you don't have permission to access this course",
+              400
+            )
+          );
+        }
+        const commentWithReplies = await courseServices.getCommentWithReplies(
+          commentId
+        );
+        return res.status(200).json({ data: commentWithReplies });
+      } catch (error: any) {
+        console.error(error);
+        return next(new ErrorHandler(error.message, 400));
+      }
+    }
+  );
+
+  public static addRate = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { courseId } = req.params;
+        const { rate } = req.body;
+        const rateData = { user: req.user.id, rateValue: rate } as IRate;
+
+        const rated = await courseServices.addRate(
+          rateData,
+          courseId,
+          req.user.id
+        );
+        if (!rated) {
+          return next(
+            new ErrorHandler("you don't have access to rate this course", 400)
+          );
+        }
+        return res
+          .status(200)
+          .json({ success: true, message: "Rate added successfully" });
       } catch (error: any) {
         console.error(error);
         return next(new ErrorHandler(error.message, 400));

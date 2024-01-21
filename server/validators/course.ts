@@ -69,14 +69,47 @@ const updateCourseValidator = [
 const updateSectionValidator = [
   check("SectionId")
     .notEmpty()
-    .withMessage("courseId is required")
+    .withMessage("sectionId is required")
     .isMongoId()
-    .withMessage("please provide a valid course Id"),
+    .withMessage("please provide a valid section Id"),
 
   check("name")
     .optional()
     .isString()
     .withMessage("Please provide a valid name"),
+];
+const addCommentValidator = [
+  check("courseId")
+    .notEmpty()
+    .withMessage("courseId is required")
+    .isMongoId()
+    .withMessage("please provide a valid course Id"),
+  check("sectionId")
+    .notEmpty()
+    .withMessage("sectionId is required")
+    .isMongoId()
+    .withMessage("please provide a valid section Id"),
+
+  check("lessonId")
+    .notEmpty()
+    .withMessage("lessonId is required")
+    .isMongoId()
+    .withMessage("please provide a valid lesson Id"),
+  check("comment").isString().withMessage("please provide a valid comment"),
+];
+const addReplyValidator = [
+  check("courseId")
+    .notEmpty()
+    .withMessage("courseId is required")
+    .isMongoId()
+    .withMessage("please provide a valid course Id"),
+
+  check("commentId")
+    .notEmpty()
+    .withMessage("commentId is required")
+    .isMongoId()
+    .withMessage("please provide a valid comment Id"),
+  check("reply").isString().withMessage("please provide a valid reply"),
 ];
 export {
   courseCreationValidator,
@@ -84,4 +117,6 @@ export {
   addLessonValidator,
   updateCourseValidator,
   updateSectionValidator,
+  addCommentValidator,
+  addReplyValidator,
 };

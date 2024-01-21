@@ -8,6 +8,8 @@ import {
   addLessonValidator,
   updateCourseValidator,
   updateSectionValidator,
+  addCommentValidator,
+  addReplyValidator,
 } from "../validators/course";
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -89,4 +91,24 @@ courseRouter.put(
 );
 
 courseRouter.get("/all", CourseController.getCourses);
+courseRouter.get("/access/:courseId", auth, CourseController.accessCourse);
+courseRouter.get("/view/:courseId", auth, CourseController.viewCourse);
+courseRouter.post(
+  "/:courseId/:sectionId/:lessonId/write-comment",
+  auth,
+  addCommentValidator,
+  CourseController.writeComment
+);
+courseRouter.post(
+  "/: courseId/:commentId/write-reply",
+  auth,
+  addReplyValidator,
+  CourseController.writeReply
+);
+courseRouter.get(
+  "/:courseId/:commentId/view-comment",
+  auth,
+  CourseController.viewComment
+);
+courseRouter.post("/:courseId/add-rate", auth, CourseController.addRate);
 export default courseRouter;

@@ -1,4 +1,5 @@
 import { CourseModel, ICourse } from "../models/course.model";
+import { PopulateOptions } from "mongoose";
 
 class CourseRepository {
   async create(courseData: ICourse): Promise<ICourse> {
@@ -7,10 +8,17 @@ class CourseRepository {
   }
 
   async update(query: object, update: object): Promise<any> {
-    return await CourseModel.updateOne(query, update);
+    return await CourseModel.findOneAndUpdate(query, update);
   }
 
-  async find(query: object, projection?: object): Promise<ICourse | null> {
+  async find(
+    query: object,
+    projection?: object,
+    population?: any
+  ): Promise<ICourse | null> {
+    if (population) {
+      return await CourseModel.findOne(query, projection).populate(population);
+    }
     return await CourseModel.findOne(query, projection);
   }
   async findAll(
@@ -32,6 +40,7 @@ class CourseRepository {
   async findAndUpdate(query: object, update: object): Promise<any> {
     return await CourseModel.findOneAndUpdate(query, update, { new: true });
   }
+  async findCourse() {}
 }
 
 export const courseRepository = new CourseRepository();

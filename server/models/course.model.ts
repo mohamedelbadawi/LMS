@@ -1,5 +1,6 @@
 import mongoose, { Document, Model, Schema } from "mongoose";
 import { IUser } from "./user.model"; // Import the User model
+import { NextFunction } from "express";
 
 interface IReply extends Document {
   user: IUser["_id"];
@@ -9,7 +10,7 @@ interface IReply extends Document {
 interface IComment extends Document {
   user: IUser["_id"];
   comment: string;
-  commentReplies: IReply[];
+  commentReplies?: IReply["_id"][];
 }
 
 interface IRate extends Document {
@@ -20,7 +21,7 @@ interface IRate extends Document {
 interface ILesson extends Document {
   name: string;
   thumbnail: { publicId: string; url: string };
-  questions?: IComment[];
+  questions?: IComment["_id"][];
   description: string;
   videoUrl: { publicId: string; url: string };
 }
@@ -43,7 +44,7 @@ interface ICourse extends Document {
   sections?: ISection["_id"][];
   rates?: IRate["_id"][];
   purchased?: number;
-  totalRates: number;
+  avgRate: number;
 }
 
 const rateSchema = new Schema<IRate>({
@@ -59,13 +60,13 @@ const replySchema = new Schema<IReply>({
 const commentSchema = new Schema<IComment>({
   user: { type: Schema.Types.ObjectId, ref: "User", required: true },
   comment: String,
-  commentReplies: [replySchema],
+  commentReplies: [{ type: Schema.Types.ObjectId, ref: "Reply" }],
 });
 
 const lessonSchema = new Schema<ILesson>({
   name: String,
   thumbnail: { publicId: String, url: String },
-  questions: [commentSchema],
+  questions: [{ type: Schema.Types.ObjectId, ref: "Comment" }],
   description: String,
   videoUrl: { publicId: String, url: String },
 });
@@ -93,17 +94,37 @@ const courseSchema = new Schema<ICourse>({
   prerequisites: [{ title: String }],
   sections: [{ type: Schema.Types.ObjectId, ref: "Section" }],
   rates: [{ type: Schema.Types.ObjectId, ref: "Rate" }],
-  totalRates: {
+  avgRate: {
     type: Number,
     default: 0,
   },
   purchased: { type: Number, default: 0 },
 });
 
+courseSchema.post("findOneAndUpdate", async function (doc) {
+  const update: any = this.getUpdate();
+  if (update.$push && update.$push.rates) {
+    const originalDocument = await this.model
+      .findOne(this.getQuery())
+      .populate("rates")
+      .select("rates");
+    const count = originalDocument.rates.length;
+    const avg =
+      originalDocument.rates.reduce(
+        (sum: number, rate: any) => sum + rate.rateValue,
+        0
+      ) / count;
+    const updatedDoc = doc as ICourse;
+    updatedDoc.avgRate = avg;
+    await updatedDoc.save();
+  }
+});
 const CourseModel: Model<ICourse> = mongoose.model("Course", courseSchema);
 const SectionModel: Model<ISection> = mongoose.model("Section", sectionSchema);
 const LessonModel: Model<ILesson> = mongoose.model("Lesson", lessonSchema);
-
+const CommentModel: Model<IComment> = mongoose.model("Comment", commentSchema);
+const ReplyModel: Model<IReply> = mongoose.model("Reply", replySchema);
+const RateModel: Model<IRate> = mongoose.model("Rate", rateSchema);
 export {
   CourseModel,
   SectionModel,
@@ -114,4 +135,7 @@ export {
   IRate,
   IComment,
   IReply,
+  CommentModel,
+  ReplyModel,
+  RateModel,
 };

@@ -1,11 +1,27 @@
 import { courseRepository } from "../repositories/courseRepository";
-import { ILesson, ICourse, ISection } from "../models/course.model";
+import {
+  ILesson,
+  ICourse,
+  ISection,
+  IComment,
+  LessonModel,
+  CommentModel,
+  IReply,
+  IRate,
+} from "../models/course.model";
 import { sectionRepository } from "../repositories/sectionRepository";
 import { lessonRepository } from "../repositories/LessonRepository";
 import { Request } from "express";
 import { deleteFile, deleteTheFileName, uploadFile } from "../utils/dataUpload";
+import { populate } from "dotenv";
+import { userServices } from "./user.services";
+import { commentRepository } from "../repositories/commentRepository";
+import { model } from "mongoose";
+import { UserModel } from "../models/user.model";
+import { rateRepository } from "../repositories/rateRepository";
 
 class CourseService {
+  //@collapse
   async createCourse(courseData: ICourse) {
     return await courseRepository.create(courseData);
   }
@@ -103,7 +119,6 @@ class CourseService {
   async findLessonById(lessonId: string) {
     return await lessonRepository.find({ _id: lessonId });
   }
-
   async updateLesson(
     lesson: ILesson,
     sectionId: string,
@@ -168,6 +183,98 @@ class CourseService {
       return await courseRepository.findAll(searchQuery, {}, limit, page);
     }
     return await courseRepository.findAll();
+  }
+  async getCourse(courseId: string) {
+    return await courseRepository.find(
+      { _id: courseId },
+      { sections: 1 },
+      {
+        path: "sections",
+        populate: {
+          path: "lessons",
+          model: LessonModel,
+          populate: {
+            path: "questions",
+            model: CommentModel,
+            populate: {
+              path: "user",
+              model: UserModel,
+              select: "avatar name",
+            },
+          },
+        },
+      }
+    );
+  }
+  async viewCourse(courseId: string) {
+    return await courseRepository.find(
+      { _id: courseId },
+      {
+        sections: 0,
+      }
+    );
+  }
+  async checkCourseInUserCourses(courseId: string, userId: string) {
+    const userCourses = await userServices.getUserCourses(userId);
+    if (!userCourses?.courses) {
+      return false;
+    }
+    const courses = userCourses?.courses.toString().split(",");
+
+    if (!courses.includes(courseId)) {
+      return false;
+    }
+    return true;
+  }
+  async addCommentToLesson(commentData: IComment, lessonId: string) {
+    const comment = await commentRepository.create(commentData);
+    const updateLessonComments = await lessonRepository.update(
+      { _id: lessonId },
+      {
+        $push: { questions: comment._id },
+      }
+    );
+
+    return updateLessonComments;
+  }
+  async addReplyToComment(commentId: string, replyData: IReply) {
+    const reply = await commentRepository.createReply(replyData);
+    const updatedCommentReplay = await commentRepository.update(
+      { _id: commentId },
+      {
+        $push: {
+          commentReplies: reply._id,
+        },
+      }
+    );
+    return updatedCommentReplay;
+  }
+  async getCommentWithReplies(commentId: string) {
+    return await commentRepository.find({ _id: commentId }, {}, [
+      {
+        path: "commentReplies",
+        populate: { path: "user", model: UserModel, select: "name avatar" },
+      },
+      {
+        path: "user",
+        select: "name avatar",
+      },
+    ]);
+  }
+  async addRate(rateData: IRate, courseId: string, userId: string) {
+    // first check if the user have the access to the course
+    const haveTheCourse = await this.checkCourseInUserCourses(courseId, userId);
+    if (haveTheCourse) {
+      const rate = await rateRepository.create(rateData);
+      const course = await courseRepository.update(
+        { _id: courseId },
+        {
+          $push: { rates: rate._id },
+        }
+      );
+      return true;
+    }
+    return false;
   }
 }
 

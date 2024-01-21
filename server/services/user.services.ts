@@ -33,6 +33,9 @@ class UserServices {
   async comparePassword(reqPassword: string, currentPassword: string) {
     return await bcrypt.compare(reqPassword, currentPassword);
   }
+  async getUserCourses(userId: string) {
+    return await userRepository.find({ _id: userId }, { courses: 1 });
+  }
 }
 
 export const userServices = new UserServices();
