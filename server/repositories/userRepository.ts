@@ -58,5 +58,8 @@ class UserRepository {
     }
     return await this.userModel.findOne(query, projection);
   }
+  async findAndUpdate(query: object, update: object): Promise<any> {
+    return await this.userModel.findOneAndUpdate(query, update, { new: true });
+  }
 }
 export const userRepository = new UserRepository();

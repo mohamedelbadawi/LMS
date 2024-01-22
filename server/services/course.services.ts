@@ -184,7 +184,7 @@ class CourseService {
     }
     return await courseRepository.findAll();
   }
-  async getCourse(courseId: string) {
+  async accessCourse(courseId: string) {
     return await courseRepository.find(
       { _id: courseId },
       { sections: 1 },

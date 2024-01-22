@@ -36,6 +36,9 @@ class UserServices {
   async getUserCourses(userId: string) {
     return await userRepository.find({ _id: userId }, { courses: 1 });
   }
+  async getUserDataById(userId: string) {
+    return await userRepository.find({ _id: userId }, { password: 0 });
+  }
 }
 
 export const userServices = new UserServices();

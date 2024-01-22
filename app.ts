@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./server/routes/auth.route";
 import userRouter from "./server/routes/user.route";
 import courseRouter from "./server/routes/course.route";
+import orderRouter from "./server/routes/order.route";
 import ErrorHandlerMiddleware from "./server/middleware/error";
 
 export const app = express();
@@ -25,6 +26,7 @@ app.use(
 app.use("/api/v1/", authRouter);
 app.use("/api/v1/user/", userRouter);
 app.use("/api/v1/course/", courseRouter);
+app.use("/api/v1/order/", orderRouter);
 
 // testing
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {

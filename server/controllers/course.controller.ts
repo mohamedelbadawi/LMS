@@ -233,7 +233,7 @@ class CourseController {
             new ErrorHandler("You must enroll to this course to comment", 400)
           );
         }
-        const course = await courseServices.getCourse(courseId);
+        const course = await courseServices.accessCourse(courseId);
         return res.status(200).json({ success: true, data: course });
       } catch (error: any) {
         return next(new ErrorHandler(error.message, 400));
