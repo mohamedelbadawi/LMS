@@ -4,13 +4,16 @@ import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRouter from "./server/routes/auth.route";
+import userRouter from "./server/routes/user.route";
+import courseRouter from "./server/routes/course.route";
+import orderRouter from "./server/routes/order.route";
 import ErrorHandlerMiddleware from "./server/middleware/error";
-import connection from "./server/utils/db";
+
 export const app = express();
 
 config();
 app.use(bodyParser.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
 
 app.use(cookieParser());
 
@@ -21,9 +24,13 @@ app.use(
 );
 // routes
 app.use("/api/v1/", authRouter);
+app.use("/api/v1/user/", userRouter);
+app.use("/api/v1/course/", courseRouter);
+app.use("/api/v1/order/", orderRouter);
 
 // testing
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
+  // emailQueue.add("done", { data: "done" });
   res.status(200).json({ message: "All is good !" });
 });
 

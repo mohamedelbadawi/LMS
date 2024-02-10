@@ -2,6 +2,7 @@ import { ICreationBody } from "../interfaces/userCreationInterface";
 import jwt, { Secret } from "jsonwebtoken";
 import { userRepository } from "../repositories/userRepository";
 import { IUser } from "../models/user.model";
+import { Response } from "express";
 
 require("dotenv").config();
 class AuthServices {
@@ -43,7 +44,7 @@ class AuthServices {
     const accessToken = await jwt.sign(
       { id: user.id },
       process.env.ACCESS_TOKEN as string,
-      { expiresIn: "30s" }
+      { expiresIn: "30000s" }
     );
 
     const refreshToken = await jwt.sign(
@@ -51,16 +52,20 @@ class AuthServices {
       process.env.REFRESH_TOKEN as string,
       { expiresIn: "1w" }
     );
- 
+
     return { accessToken, refreshToken };
   }
   async generateAccessToken(id: string) {
     const accessToken = await jwt.sign(
       { id: id },
       process.env.ACCESS_TOKEN as string,
-      { expiresIn: "5m" }
+      { expiresIn: "15m" }
     );
     return accessToken;
+  }
+  async deleteTokens(res: Response) {
+    res.cookie("accessToken", "", { maxAge: 0 });
+    res.cookie("refreshToken", "", { maxAge: 0 });
   }
 }
 

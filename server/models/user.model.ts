@@ -1,6 +1,7 @@
 import { NextFunction } from "express";
 import mongoose, { Document, Model, Schema } from "mongoose";
 import bcrypt from "bcryptjs";
+import { ICourse } from "./course.model";
 
 interface IUser extends Document {
   name: string;
@@ -12,8 +13,7 @@ interface IUser extends Document {
   };
   role: string;
   isVerified: boolean;
-  courses: Array<{ courseId: string }>;
-  comparePassword: (password: string) => Promise<boolean>;
+  courses?: ICourse["_id"][];
 }
 
 const userSchema: Schema<IUser> = new mongoose.Schema(
@@ -46,7 +46,7 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    courses: [{ courseId: String }],
+    courses: [{ type: Schema.Types.ObjectId, ref: "Course" }],
   },
   { timestamps: true }
 );

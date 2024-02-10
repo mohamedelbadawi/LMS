@@ -9,11 +9,16 @@ class UserRepository {
   async create(userData: ICreationBody) {
     return await this.userModel.create(userData);
   }
-  async getOneByEmail(email: string, field?: string[]) {
+  async getOneByEmail(email: string, field?: string[], exceptOne?: string) {
     if (field?.length) {
-      return await this.userModel.find({ email: email }).select(field).exec();
+      return await this.userModel
+        .find({ email: email, _id: { $ne: exceptOne } })
+        .select(field)
+        .exec();
     } else {
-      const data = await this.userModel.find({ email: email }).exec();
+      const data = await this.userModel
+        .find({ email: email, _id: { $ne: exceptOne } })
+        .exec();
       return data;
     }
   }
@@ -25,6 +30,36 @@ class UserRepository {
 
       return data;
     }
+  }
+  async updateUser(
+    userData: {
+      name?: string;
+      email?: string;
+      password?: string;
+      avatar?: {
+        publicId: string;
+        url: string;
+      };
+    },
+    id: string
+  ) {
+    return await this.userModel.findOneAndUpdate({ _id: id }, userData).exec();
+  }
+
+  async find(
+    query: object,
+    projection?: object,
+    population?: any
+  ): Promise<IUser | null> {
+    if (population) {
+      return await this.userModel
+        .findOne(query, projection)
+        .populate(population);
+    }
+    return await this.userModel.findOne(query, projection);
+  }
+  async findAndUpdate(query: object, update: object): Promise<any> {
+    return await this.userModel.findOneAndUpdate(query, update, { new: true });
   }
 }
 export const userRepository = new UserRepository();
