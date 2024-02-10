@@ -3,11 +3,12 @@ import { authServices } from "../services/auth.services";
 import { ICreationBody } from "../interfaces/userCreationInterface";
 import ErrorHandler from "../utils/ErrorHandler";
 import { asyncHandler } from "../middleware/asyncErrorHandler";
-import sendEmail from "../utils/sendEmail";
 import { IActivationRequest } from "../interfaces/IActivationRequest";
 import { IUser } from "../models/user.model";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
+import emailQueue from "../utils/queueWorker";
+
 class AuthController {
   public static register = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
@@ -34,13 +35,16 @@ class AuthController {
         };
 
         try {
-          await sendEmail({
+          // const emailQueue = emailQueue();
+
+          // await sendEmail();
+          emailQueue.add({
             email: user.email,
             subject: "Active your Account",
             template: "activation-email.ejs",
             data: data,
           });
-          res.status(200).json({
+          await res.status(200).json({
             success: true,
             message: "Please check your email to activate your account",
             token: token,

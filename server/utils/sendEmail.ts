@@ -1,9 +1,8 @@
 import * as nodemailer from "nodemailer";
 import ejs from "ejs";
 import path from "path";
-
 require("dotenv").config();
-interface EmailOptions {
+export interface EmailOptions {
   email: string;
   subject: string;
   template: string;

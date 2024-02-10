@@ -30,6 +30,7 @@ app.use("/api/v1/order/", orderRouter);
 
 // testing
 app.get("/test", (req: Request, res: Response, next: NextFunction) => {
+  // emailQueue.add("done", { data: "done" });
   res.status(200).json({ message: "All is good !" });
 });
 

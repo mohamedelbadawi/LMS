@@ -131,6 +131,14 @@ class OrderServices {
       }
     );
     if (status === "success") {
+      const course = await courseServices.viewCourse(order.course);
+      await courseServices.updateCourse(
+        order.course,
+
+        {
+          purchased:(course?.purchased||+1)
+        }
+      );
       const user = await userRepository.findAndUpdate(
         {
           _id: order.user,
