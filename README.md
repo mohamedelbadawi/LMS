@@ -1,6 +1,6 @@
 
-# Learning Management System (LMS) API
-A powerful and efficient platform built using TypeScript and MongoDB. This API is designed to provide seamless management of user profiles, courses, reviews, questions, and payments. It incorporates features such as credit card and smart wallet payments via the Paymob gateway, course data storage on Cloudinary, efficient email sending using queues, and enhanced security through the use of refresh tokens.
+# LearnSphere 
+A powerful and efficient Learning platform built using TypeScript and MongoDB. This API is designed to provide seamless management of user profiles, courses, reviews, questions, and payments. It incorporates features such as credit card and smart wallet payments via the Paymob gateway, course data storage on Cloudinary, efficient email sending using queues, and enhanced security through the use of refresh tokens.
 
 
 
